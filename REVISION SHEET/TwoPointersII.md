@@ -1,0 +1,373 @@
+========================================================
+
+Two Pointers → Opposite Direction / Invariant Pattern
+========================================================
+
+### Core Mental Model
+
+Reader/Writer taught:
+> Maintain state while scanning.
+
+Opposite Direction teaches:
+> Shrink the unresolved search space.
+
+Visualization:
+>[L .......... R]
+
+At every iteration:
+
+- Something gets verified, eliminated, resolved, or finalized.
+- Pointer movement must be logically justified.
+- Pointers never move backward because resolved elements never matter again.
+
+---
+
+### Pattern Recognition
+
+Use Opposite Direction Pointers when:
+
+- Search space naturally looks like:
+    >[L .......... R]
+
+- Information exists at both boundaries.
+- A boundary becomes irrelevant after each move.
+- Need better than brute force.
+- Sorted array OR boundary-driven reasoning exists.
+
+---
+
+### Universal Questions
+
+Before moving a pointer ask:
+
+1. What am I comparing?
+2. What operation am I performing?
+3. Which boundary becomes irrelevant?
+4. Why is revisiting it unnecessary?
+
+If you cannot justify the move:
+> You are memorizing, not reasoning.
+
+---
+
+### Universal Pointer Rule
+
+Never memorize:
+
+```cpp
+sum < target --> left++
+sum > target --> right--
+```
+
+Instead ask:
+> Which boundary has been proven useless/resolved?
+
+If Left boundary eliminated:
+>left++;
+
+If Right boundary eliminated:
+>right--;
+
+If Both boundaries eliminated:
+
+```cpp
+left++;
+right--;
+```
+
+---
+
+### Opposite Direction / Invariant Variation Table
+
+| LC# | Problem | Init | Compare / Condition | Operation | Move | Reconstruction Hint |
+|------|----------|------|---------------------|------------|------|---------------------|
+| 125 | Valid Palindrome | `L=0, R=n-1` | `s[L] == s[R]` | Verify mirrored pair | `L++, R--` | Symmetry check. Boundary pair must match. |
+| 167 | Two Sum II | `L=0, R=n-1` | `sum vs target` | Check pair sum | `sum < target → L++`<br>`sum > target → R--` | Sorted array. Eliminate impossible boundary. |
+| 977 | Squares of Sorted Array | `L=0, R=n-1`<br>`W=n-1` | `abs(L) vs abs(R)` | Write larger square at `result[W]` | Larger abs side moves<br>`W--` | Largest square always comes from a boundary. |
+| 11 | Container With Most Water | `L=0, R=n-1` | `h[L] vs h[R]` | `area=(R-L)*min(h[L],h[R])`<br>update ans | Move smaller height | Smaller wall is bottleneck. Width always shrinks. |
+| 15 | 3Sum | Sort first<br>Fix `i`<br>`L=i+1`<br>`R=n-1` | `sum vs target` | Evaluate triplet | `sum < target → L++`<br>`sum > target → R--` | Two Sum II inside a loop + duplicate handling. |
+| 42 | Trapping Rain Water | `L=0, R=n-1`<br>`leftMax=0`<br>`rightMax=0` | `leftMax vs rightMax` | `water += leftMax-height[L]`<br>or<br>`water += rightMax-height[R]` | Smaller max side moves | Smaller max decides water level. |
+| 75 | Sort Colors | `low=0`<br>`mid=0`<br>`high=n-1` | `nums[mid]` | Partition array | `0 → swap(low,mid)`<br>`1 → mid++`<br>`2 → swap(mid,high)` | Unknown region shrinks. |
+
+---
+
+### Important Notes
+
+#### LC125 — Valid Palindrome
+
+- Simplest Opposite Direction problem.
+- Search space = unresolved mirrored pairs.
+
+If characters match:
+
+```cpp
+left++;
+right--;
+```
+
+If mismatch:
+
+```cpp
+return false;
+```
+
+Follow-up version:
+- Skip non-alphanumeric characters.
+- Convert to lowercase before comparison.
+
+</br>
+
+**Mental Model**
+> Verify mirrored boundaries and shrink inward.
+
+---
+
+#### LC167 — Two Sum II
+
+- Sorted array is the key signal.
+- Never brute force `O(n²)`.
+
+Rule:
+>sum < target
+→ eliminate left boundary
+
+***Reason:***
+> Even largest partner cannot make left work.
+
+</br>
+
+Rule:
+>sum > target
+→ eliminate right boundary
+
+***Reason:***
+> Even smallest partner cannot make right work.
+
+</br>
+
+**Mental Model**
+> Eliminate impossible boundary.
+
+---
+
+### LC977 — Squares of Sorted Array
+
+**Key Observation**
+
+Largest square comes from:
+
+```cpp
+max(abs(nums[L]), abs(nums[R]))
+```
+
+Need:
+>writer = n - 1;
+
+
+because:
+> Largest square belongs at the end.
+
+Process:
+
+1. Compare `abs(left)` and `abs(right)`
+2. Write larger square
+3. Move that pointer
+4. `writer--`
+
+**Mental Model**
+> Resolve largest remaining square.
+
+---
+
+### LC11 — Container With Most Water
+
+Formula:
+
+```cpp
+area = (right-left) * min(height[left], height[right]);
+```
+
+**Important Insight**
+
+Width always decreases.
+
+So to improve area:
+> Must improve limiting height.
+
+Move:
+>smaller height pointer
+
+Never:
+>larger height pointer
+
+Reason:
+> Smaller wall is bottleneck.
+
+</br>
+
+**Mental Model**
+> Remove bottleneck wall.
+
+---
+
+### LC15 — 3Sum
+
+Template:
+
+```cpp
+sort(nums);
+
+for(i)
+    Two Sum II
+```
+
+Inside loop:
+
+```cpp
+target = -nums[i];
+```
+
+Then:
+
+```cpp
+L = i + 1;
+R = n - 1;
+```
+
+**Duplicate Handling**
+>Skip duplicate `i`.
+
+After finding answer:
+>Skip duplicate `L`.
+>Skip duplicate `R`.
+
+</br>
+
+**Mental Model**
+> Two Sum II inside outer loop.
+
+---
+
+### LC42 — Trapping Rain Water
+
+Maintain:
+
+```cpp
+leftMax
+rightMax
+```
+
+Rule:
+
+If:
+>leftMax < rightMax
+
+Then:
+Left side water is finalized.
+
+Water:
+>leftMax - height[left]
+
+Move:
+>left++;
+
+Symmetric for right side.
+
+**Important**
+Update max first.
+
+</br>
+
+**Mental Model**
+> Smaller max determines water.
+
+---
+
+### LC75 — Sort Colors (Dutch National Flag)
+
+Regions:
+
+```text
+[0s][1s][Unknown][2s]
+      mid
+```
+
+Pointers:
+
+```cpp
+low
+mid
+high
+```
+
+**(nums[mid] == 0)**
+
+```cpp
+swap(low, mid);
+low++;
+mid++;
+```
+
+**(nums[mid] == 1)**
+
+```cpp
+mid++;
+```
+
+**(nums[mid] == 2)**
+
+```cpp
+swap(mid, high);
+high--;
+```
+
+**Important**
+
+Do **NOT** increment:
+
+`mid` after swapping with `high`.
+
+Reason:
+> New element at mid is unprocessed.
+
+</br>
+
+**Mental Model**
+> Shrink unknown region.
+
+---
+
+### Problem Memory Hooks
+
+- **LC125** → Verify mirrored pair
+- **LC167** → Eliminate impossible value
+- **LC977** → Largest square goes to back
+- **LC11** → Smaller wall is bottleneck
+- **LC15** → Two Sum II inside loop
+- **LC42** → Smaller max decides water
+- **LC75** → Unknown region shrinks
+
+---
+
+### Reader/Writer vs Opposite Direction
+
+| Reader / Writer | Opposite Direction |
+|---|---|
+| Maintain state | Shrink search space |
+| Mostly left → right | Both ends move inward |
+| Reader discovers | Boundaries eliminate |
+| Writer builds answer | Pointer move reduces possibilities |
+| Ask: “How do I update?” | Ask: “What can I eliminate?” |
+
+---
+
+### 30-Second Interview Recall
+
+1. Can search space be represented as:
+    >[L .......... R]
+
+2. What am I comparing?
+3. What operation happens?
+4. Which boundary becomes irrelevant?
+5. Why is moving this pointer safe?
+6. Why never revisit this element?
